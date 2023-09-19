@@ -92,6 +92,8 @@ namespace Anonymous.Jenkins
 
         private static string GetArgument(string name)
         {
+            // example : GetArgument("-command")
+            
             var args = Environment.GetCommandLineArgs();
             for (var i = 0; i < args.Length; i++)
                 if (args[i] == name && args.Length > i + 1)
