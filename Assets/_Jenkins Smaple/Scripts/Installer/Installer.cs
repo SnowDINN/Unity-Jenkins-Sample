@@ -9,24 +9,6 @@ namespace Anonymous.Jenkins
         Develop,
         Release
     }
-    
-    public enum PathType
-    {
-        InProject,
-        External
-    }
-
-    public enum DialogType
-    {
-        Folder,
-        File
-    }
-
-    public enum KeyStoreType
-    {
-        Debug,
-        Custom
-    }
 
     [Flags]
     public enum iOSCapability
