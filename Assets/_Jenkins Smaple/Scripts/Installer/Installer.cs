@@ -64,7 +64,7 @@ namespace Anonymous.Jenkins
     {
         public BatchArguments Arguments;
 
-        [Header("")]
+        [Header("Xcode Settings")]
         public iOSCapability useCapabilities;
         public ActivateType useSwiftLibraries;
         public ActivateType useBitCode;
