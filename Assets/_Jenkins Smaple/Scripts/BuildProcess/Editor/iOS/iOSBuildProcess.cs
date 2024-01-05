@@ -1,239 +1,133 @@
 #if UNITY_IOS
 using System;
 using System.IO;
-using System.Reflection;
 using UnityEditor;
-using UnityEditor.Callbacks;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 using UnityEditor.iOS.Xcode;
 using UnityEngine;
 
 namespace Anonymous.Jenkins.BuildProcess
 {
-    public static class iOSBuildProcess
-    {
-        private const string DefaultAccessLevel = "Default";
-        private const string AuthenticationServicesFramework = "AuthenticationServices.framework";
-        private const BindingFlags NonPublicInstanceBinding = BindingFlags.NonPublic | BindingFlags.Instance;
-        private static string ProjectPath = string.Empty;
-        private static string PbxProjectPath = string.Empty;
+	public class iOSBuildProcess : IPostprocessBuildWithReport
+	{
+		private Installer installer;
 
-        private static Installer installer;
+		private string PbxProjectPath;
+		private string ProjectPath;
 
-        [PostProcessBuild(999)]
-        public static void OnPostProcessBuild(BuildTarget target, string path)
-        {
-            if (target != BuildTarget.iOS)
-                return;
+		public int callbackOrder => 999;
 
-            installer = Resources.Load("Jenkins/Installer") as Installer;
+		public void OnPostprocessBuild(BuildReport report)
+		{
+			OnPostProcessBuild(report.summary.platform, report.summary.outputPath);
+		}
 
-            ProjectPath = path;
-            PbxProjectPath = PBXProject.GetPBXProjectPath(path);
+		private void OnPostProcessBuild(BuildTarget target, string path)
+		{
+			if (target != BuildTarget.iOS)
+				return;
 
-            ModifyProject(SetBuildPhase);
-            ModifyProject(AddLinkerFlag);
-            ModifyProject(AddCapability);
-            ModifyProject(SetSwiftLibraries);
-            ModifyProject(SetBitcode);
+			installer = Resources.Load("Jenkins/Installer") as Installer;
 
-            ModifyPlist(AddUrlScheme);
-        }
+			ProjectPath = path;
+			PbxProjectPath = PBXProject.GetPBXProjectPath(path);
 
-        private static void ModifyProject(Action<PBXProject> modifier)
-        {
-            var project = new PBXProject();
-            project.ReadFromString(File.ReadAllText(PbxProjectPath));
-            modifier(project);
+			ModifyProject(AddLinkerFlag);
+			ModifyProject(AddCapability);
+			ModifyProject(SetSwiftLibraries);
+			ModifyProject(SetBitcode);
+		}
 
-            File.WriteAllText(PbxProjectPath, project.WriteToString());
-        }
+		private void ModifyProject(Action<PBXProject> modifier)
+		{
+			var project = new PBXProject();
+			project.ReadFromFile(PbxProjectPath);
 
-        private static void ModifyPlist(Action<PlistDocument> modifier)
-        {
-            var plistInfoFile = new PlistDocument();
-            var infoPlistPath = Path.Combine(ProjectPath, "Info.plist");
-            plistInfoFile.ReadFromString(File.ReadAllText(infoPlistPath));
-            modifier(plistInfoFile);
+			modifier(project);
 
-            File.WriteAllText(infoPlistPath, plistInfoFile.WriteToString());
-        }
+			File.WriteAllText(PbxProjectPath, project.WriteToString());
+		}
 
-        private static void AddUrlScheme(PlistDocument plist)
-        {
-            var CFBundleURLTypes = "CFBundleURLTypes";
-            var CFBundleURLSchemes = "CFBundleURLSchemes";
+		private void ModifyPlist(Action<PlistDocument> modifier)
+		{
+			var plistInfoFile = new PlistDocument();
+			var infoPlistPath = Path.Combine(ProjectPath, "Info.plist");
+			plistInfoFile.ReadFromString(File.ReadAllText(infoPlistPath));
+			modifier(plistInfoFile);
 
-            if (!plist.root.values.ContainsKey(CFBundleURLTypes))
-                plist.root.CreateArray(CFBundleURLTypes);
+			File.WriteAllText(infoPlistPath, plistInfoFile.WriteToString());
+		}
 
-            var cFBundleURLTypesElem = plist.root.values[CFBundleURLTypes] as PlistElementArray;
-            var getSocialUrlSchemesArray = new PlistElementArray();
-            var getSocialSchemeElem = cFBundleURLTypesElem.AddDict();
-            getSocialSchemeElem.values[CFBundleURLSchemes] = getSocialUrlSchemesArray;
-        }
+		private void AddLinkerFlag(PBXProject project)
+		{
+			project.ReadFromString(File.ReadAllText(PbxProjectPath));
+			
+			var mainBuildTarget = project.GetUnityMainTargetGuid();
+			project.AddBuildProperty(mainBuildTarget, "OTHER_LDFLAGS", "-all_load");
+		}
 
-        private static void SetBuildPhase(PBXProject project)
-        {
-            project.AddHeadersBuildPhase(project.GetUnityFrameworkTargetGuid());
+		private void AddCapability(PBXProject project)
+		{
+			var mainBuildTarget = project.GetUnityMainTargetGuid();
+			var entitlementsFileName =
+				project.GetBuildPropertyForAnyConfig(mainBuildTarget, "CODE_SIGN_ENTITLEMENTS");
+			if (entitlementsFileName == null)
+			{
+				var bundleIdentifier = PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.iOS);
+				entitlementsFileName = string.Format("{0}.entitlements",
+					bundleIdentifier.Substring(bundleIdentifier.LastIndexOf(".") + 1));
+			}
 
-            var header = project.FindFileGuidByProjectPath("UnityFramework/UnityFramework.h");
-            project.AddPublicHeaderToBuild(project.GetUnityFrameworkTargetGuid(), header);
+			var manager = new ProjectCapabilityManager(
+				PbxProjectPath,
+				entitlementsFileName,
+				"Unity-iPhone",
+				mainBuildTarget
+			);
 
-            header = project.FindFileGuidByProjectPath("Classes/UnityAppController.h");
-            project.AddPublicHeaderToBuild(project.GetUnityFrameworkTargetGuid(), header);
+			if (installer.useCapabilities.HasFlag(iOSCapability.PushNotifications))
+				manager.AddPushNotifications(true);
 
-            header = project.FindFileGuidByProjectPath("Classes/RedefinePlatforms.h");
-            project.AddPublicHeaderToBuild(project.GetUnityFrameworkTargetGuid(), header);
+			if (installer.useCapabilities.HasFlag(iOSCapability.InAppPurchase))
+				manager.AddInAppPurchase();
 
-            header = project.FindFileGuidByProjectPath("Classes/UndefinePlatforms.h");
-            project.AddPublicHeaderToBuild(project.GetUnityFrameworkTargetGuid(), header);
+			if (installer.useCapabilities.HasFlag(iOSCapability.SignInWithApple))
+				manager.AddSignInWithApple();
 
-            header = project.FindFileGuidByProjectPath("Classes/PluginBase/RenderPluginDelegate.h");
-            project.AddPublicHeaderToBuild(project.GetUnityFrameworkTargetGuid(), header);
+			if (installer.useCapabilities.HasFlag(iOSCapability.GameCenter))
+				manager.AddGameCenter();
 
-            header = project.FindFileGuidByProjectPath("Classes/PluginBase/LifeCycleListener.h");
-            project.AddPublicHeaderToBuild(project.GetUnityFrameworkTargetGuid(), header);
-        }
+			manager.WriteToFile();
+		}
 
-        private static void AddLinkerFlag(PBXProject project)
-        {
-            project.ReadFromString(File.ReadAllText(PbxProjectPath));
-            var buildTarget = project.GetUnityMainTargetGuid();
+		private void SetSwiftLibraries(PBXProject project)
+		{
+			var value = installer.useSwiftLibraries == ActivateType.Yes ? "YES" : "NO";
+			project.ReadFromString(File.ReadAllText(PbxProjectPath));
 
-            project.AddBuildProperty(buildTarget, "OTHER_LDFLAGS", "-all_load");
-        }
+			var mainBuildTarget = project.GetUnityMainTargetGuid();
+			project.SetBuildProperty(mainBuildTarget, "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", value);
+			project.SetBuildProperty(mainBuildTarget, "VALIDATE_WORKSPACE", value);
 
-        private static void AddCapability(PBXProject project)
-        {
-            var mainTarget = project.GetUnityMainTargetGuid();
-            var manager =
-                new ProjectCapabilityManager(PbxProjectPath, "Unity-iPhone.entitlements", "Unity-iPhone", mainTarget);
+			var unityFrameworkTarget = project.GetUnityFrameworkTargetGuid();
+			project.SetBuildProperty(unityFrameworkTarget, "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", "NO");
+			project.SetBuildProperty(unityFrameworkTarget, "VALIDATE_WORKSPACE", "NO");
+		}
 
-            if (installer.iOSDeepLink.Length > 0)
-                manager.AddAssociatedDomains(installer.iOSDeepLink);
+		private void SetBitcode(PBXProject project)
+		{
+			var value = installer.useBitCode == ActivateType.Yes ? "YES" : "NO";
 
-            if (installer.useCapabilities.HasFlag(iOSCapability.InAppPurchase))
-                manager.AddInAppPurchase();
+			var mainBuildTarget = project.GetUnityMainTargetGuid();
+			project.SetBuildProperty(mainBuildTarget, "ENABLE_BITCODE", value);
 
-            if (installer.useCapabilities.HasFlag(iOSCapability.PushNotifications))
-                manager.AddPushNotifications(true);
+			var testBuildTarget = project.TargetGuidByName(PBXProject.GetUnityTestTargetName());
+			project.SetBuildProperty(testBuildTarget, "ENABLE_BITCODE", value);
 
-            if (installer.useCapabilities.HasFlag(iOSCapability.SignInWithApple))
-                manager.AddSignInWithApple(project.GetUnityFrameworkTargetGuid());
-
-            if (installer.useCapabilities.HasFlag(iOSCapability.GameCenter))
-                manager.AddGameCenter();
-
-            manager.WriteToFile();
-        }
-
-        private static void SetSwiftLibraries(PBXProject project)
-        {
-            var value = installer.useSwiftLibraries == ActivateType.Yes ? "YES" : "NO";
-
-            project.ReadFromString(File.ReadAllText(PbxProjectPath));
-
-            var mainBuildTarget = project.GetUnityMainTargetGuid();
-            project.SetBuildProperty(mainBuildTarget, "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", value);
-            project.SetBuildProperty(mainBuildTarget, "VALIDATE_WORKSPACE", value);
-
-            var unityFrameworkTarget = project.GetUnityFrameworkTargetGuid();
-            project.SetBuildProperty(unityFrameworkTarget, "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", "NO");
-            project.SetBuildProperty(unityFrameworkTarget, "VALIDATE_WORKSPACE", "NO");
-        }
-
-        private static void SetBitcode(PBXProject project)
-        {
-            var value = installer.useBitCode == ActivateType.Yes ? "YES" : "NO";
-
-            var mainBuildTarget = project.GetUnityMainTargetGuid();
-            project.SetBuildProperty(mainBuildTarget, "ENABLE_BITCODE", value);
-
-            var testBuildTarget = project.TargetGuidByName(PBXProject.GetUnityTestTargetName());
-            project.SetBuildProperty(testBuildTarget, "ENABLE_BITCODE", value);
-
-            var unityFrameworkTarget = project.GetUnityFrameworkTargetGuid();
-            project.SetBuildProperty(unityFrameworkTarget, "ENABLE_BITCODE", value);
-        }
-
-        public static void AddSignInWithApple(this ProjectCapabilityManager manager,
-            string unityFrameworkTargetGuid = null)
-        {
-            var managerType = typeof(ProjectCapabilityManager);
-            var capabilityTypeType = typeof(PBXCapabilityType);
-
-            var projectField = managerType.GetField("project", NonPublicInstanceBinding);
-            var targetGuidField = managerType.GetField("m_TargetGuid", NonPublicInstanceBinding);
-            var entitlementFilePathField = managerType.GetField("m_EntitlementFilePath", NonPublicInstanceBinding);
-            var getOrCreateEntitlementDocMethod =
-                managerType.GetMethod("GetOrCreateEntitlementDoc", NonPublicInstanceBinding);
-            var constructorInfo = capabilityTypeType.GetConstructor(
-                NonPublicInstanceBinding,
-                null,
-                new[] { typeof(string), typeof(bool), typeof(string), typeof(bool) },
-                null);
-
-            if (projectField == null || targetGuidField == null || entitlementFilePathField == null ||
-                getOrCreateEntitlementDocMethod == null || constructorInfo == null)
-                throw new Exception("Can't Add Sign In With Apple programatically in this Unity version");
-
-            var entitlementFilePath = entitlementFilePathField.GetValue(manager) as string;
-            if (getOrCreateEntitlementDocMethod.Invoke(manager, new object[] { }) is PlistDocument entitlementDoc)
-            {
-                var plistArray = new PlistElementArray();
-                plistArray.AddString(DefaultAccessLevel);
-                entitlementDoc.root["com.apple.developer.applesignin"] = plistArray;
-            }
-
-            if (projectField.GetValue(manager) is PBXProject project)
-            {
-                var mainTargetGuid = targetGuidField.GetValue(manager) as string;
-                var capabilityType = constructorInfo.Invoke(new object[]
-                    { "com.apple.developer.applesignin.custom", true, string.Empty, true }) as PBXCapabilityType;
-
-                var targetGuidToAddFramework = unityFrameworkTargetGuid;
-                if (targetGuidToAddFramework == null)
-                    targetGuidToAddFramework = mainTargetGuid;
-
-                project.AddFrameworkToProject(targetGuidToAddFramework, AuthenticationServicesFramework, true);
-                project.AddCapability(mainTargetGuid, capabilityType, entitlementFilePath);
-            }
-        }
-
-        public static void AddGameCenter(this ProjectCapabilityManager manager)
-        {
-            var managerType = typeof(ProjectCapabilityManager);
-            var capabilityTypeType = typeof(PBXCapabilityType);
-
-            var projectField = managerType.GetField("project", NonPublicInstanceBinding);
-            var targetGuidField = managerType.GetField("m_TargetGuid", NonPublicInstanceBinding);
-            var entitlementFilePathField = managerType.GetField("m_EntitlementFilePath", NonPublicInstanceBinding);
-            var getOrCreateEntitlementDocMethod =
-                managerType.GetMethod("GetOrCreateEntitlementDoc", NonPublicInstanceBinding);
-            var constructorInfo = capabilityTypeType.GetConstructor(
-                NonPublicInstanceBinding,
-                null,
-                new[] { typeof(string), typeof(bool), typeof(string), typeof(bool) },
-                null);
-
-            if (projectField == null || targetGuidField == null || entitlementFilePathField == null ||
-                getOrCreateEntitlementDocMethod == null || constructorInfo == null)
-                throw new Exception("Can't Add Game Center programatically in this Unity version");
-
-            var entitlementFilePath = entitlementFilePathField.GetValue(manager) as string;
-            if (getOrCreateEntitlementDocMethod.Invoke(manager, new object[] { }) is PlistDocument entitlementDoc)
-                entitlementDoc.root.SetBoolean("com.apple.developer.game-center", true);
-
-            if (projectField.GetValue(manager) is PBXProject project)
-            {
-                var mainTargetGuid = targetGuidField.GetValue(manager) as string;
-                var capabilityType =
-                    constructorInfo.Invoke(new object[]
-                        { "com.apple.developer.game-center", true, string.Empty, true }) as PBXCapabilityType;
-
-                project.AddCapability(mainTargetGuid, capabilityType, entitlementFilePath);
-            }
-        }
-    }
+			var unityFrameworkTarget = project.GetUnityFrameworkTargetGuid();
+			project.SetBuildProperty(unityFrameworkTarget, "ENABLE_BITCODE", value);
+		}
+	}
 }
 #endif

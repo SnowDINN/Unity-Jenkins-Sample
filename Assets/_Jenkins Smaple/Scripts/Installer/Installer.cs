@@ -1,8 +1,15 @@
 using System;
+using UnityEditor;
 using UnityEngine;
 
 namespace Anonymous.Jenkins
 {
+    public enum EnviromentType
+    {
+        Develop,
+        Release
+    }
+    
     public enum PathType
     {
         InProject,
@@ -35,28 +42,31 @@ namespace Anonymous.Jenkins
         No,
         Yes
     }
+    
+    [Serializable]
+    public class BatchArguments
+    {
+        public EnviromentType BuildEnviroment;
+        public BuildTarget BuildPlatform;
+        public string BuildVersion;
+        public int BuildVersionCode;
+        public int BuildNumber;
+
+        public bool canABB;
+        public bool useKeystore;
+        public string KeystoreAlias;
+        public string KeystorePassword;
+        public string KeystorePath;
+    }
 
     [CreateAssetMenu(fileName = "Installer", menuName = "Jenkins/Installer")]
     public class Installer : ScriptableObject
     {
-        public PathType BuildPathType;
-        public string BuildExportPath;
-        public string BuildAddExportPath;
-        public string BuildFileName;
-        public string BuildVersion;
-        public int BuildNumber;
+        public BatchArguments Arguments;
 
-        public KeyStoreType KeyStoreType;
-        public PathType KeyStorePathType;
-        public string KeyStorePath;
-        public string KeyStoreAddPath;
-        public string KeyStorePassword;
-        public string KeyAliasName;
-        public string KeyAliasPassword;
-
-        public string[] iOSDeepLink;
+        [Header("")]
+        public iOSCapability useCapabilities;
         public ActivateType useSwiftLibraries;
         public ActivateType useBitCode;
-        public iOSCapability useCapabilities;
     }
 }
