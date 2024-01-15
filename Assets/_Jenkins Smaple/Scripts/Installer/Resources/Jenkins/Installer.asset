@@ -12,20 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6e6b23f906685943a037cea16da5c32, type: 3}
   m_Name: Installer
   m_EditorClassIdentifier: 
-  BuildPathType: 0
-  BuildExportPath: C:\Users\BIGGLZ\Desktop\Unity-Jenkins-Example
-  BuildAddExportPath: 
-  BuildFileName: Anonymous.apk
-  BuildVersion: 1.0.0
-  BuildNumber: 1
-  KeyStoreType: 1
-  KeyStorePathType: 0
-  KeyStorePath: C:\Users\BIGGLZ\Desktop\Unity-Jenkins-Example
-  KeyStoreAddPath: 
-  KeyStorePassword: 
-  KeyAliasName: 
-  KeyAliasPassword: 
-  iOSDeepLink: []
+  Arguments:
+    BuildEnviroment: 0
+    BuildPlatform: 0
+    BuildVersion: 
+    BuildVersionCode: 0
+    BuildNumber: 0
+    canABB: 0
+    useKeystore: 0
+    KeystoreAlias: 
+    KeystorePassword: 
+    KeystorePath: 
+  useCapabilities: 0
   useSwiftLibraries: 0
   useBitCode: 0
-  useCapabilities: 0
+  Symbols: []
