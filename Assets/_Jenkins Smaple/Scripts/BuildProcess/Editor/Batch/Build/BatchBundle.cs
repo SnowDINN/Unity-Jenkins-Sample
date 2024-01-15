@@ -13,10 +13,11 @@ namespace Anonymous.Jenkins
 		public const string profile = "Assets";
 
 		private static string path => Path.GetFullPath(Path.Combine(Application.dataPath, @".."));
+		private static Installer installer;
 
 		public static void Build(BatchArguments args)
 		{
-			var installer = Resources.Load("Jenkins/Installer") as Installer;
+			installer = Resources.Load("Jenkins/Installer") as Installer;
 			if (installer != null)
 				installer.Arguments = args;
 
