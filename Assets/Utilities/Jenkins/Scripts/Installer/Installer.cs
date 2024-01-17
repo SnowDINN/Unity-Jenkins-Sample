@@ -97,18 +97,8 @@ namespace Anonymous.Jenkins
 				where symbol.Type.HasFlag(type)
 				select symbol.SymbolCode);
 
-			if (symbols.Count > 1)
-				for (var i = 0; i < symbols.Count; i++)
-				{
-					if (i == symbols.Count)
-						return;
-
-					symbols[i] = $"{symbols[i]};";
-				}
-
-			var scriptingDefine = symbols.Aggregate(string.Empty, (current, symbol) => current + symbol);
 			PlayerSettings.SetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup,
-				$"{scriptingDefine}");
+				$"{string.Join(";", symbols)}");
 		}
 	}
 }

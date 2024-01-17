@@ -25,7 +25,7 @@ public class Batch
 
 		Application.logMessageReceived += LogMessageReceived;
 
-		BatchBuild.Build(args);
+		BatchBuild.Build(Save(args));
 
 		Application.logMessageReceived -= LogMessageReceived;
 	}
@@ -41,9 +41,22 @@ public class Batch
 
 		Application.logMessageReceived += LogMessageReceived;
 
-		BatchBundle.Build(args);
+		BatchBundle.Build(Save(args));
 
 		Application.logMessageReceived -= LogMessageReceived;
+	}
+
+	private static Installer Save(BatchArguments args)
+	{
+		var installer = Resources.Load("Jenkins/Installer") as Installer;
+		if (installer != null)
+			installer.Arguments = args;
+
+		EditorUtility.SetDirty(installer);
+		AssetDatabase.SaveAssets();
+		AssetDatabase.Refresh();
+
+		return installer;
 	}
 
 	private static string GetArgument(string name)
@@ -51,6 +64,7 @@ public class Batch
 		name += "=";
 
 		var args = Environment.GetCommandLineArgs();
+
 		return (from arg in args where arg.Contains(name) select arg.Split("=")[1]).FirstOrDefault();
 	}
 
@@ -60,10 +74,12 @@ public class Batch
 		{
 			case LogType.Exception:
 				Debug.Log($"Build Exception : {stackTrace}\n{condition}");
+
 				break;
 
 			case LogType.Error:
 				Debug.Log($"Build Error : {stackTrace}\n{condition}");
+
 				break;
 
 			case LogType.Assert:

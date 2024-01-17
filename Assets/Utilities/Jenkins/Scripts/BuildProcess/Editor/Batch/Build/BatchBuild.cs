@@ -7,18 +7,9 @@ namespace Anonymous.Jenkins
 {
 	public class BatchBuild
 	{
-		private static Installer installer;
-
-		public static void Build(BatchArguments args)
+		public static void Build(Installer installer)
 		{
-			installer = Resources.Load("Jenkins/Installer") as Installer;
-			if (installer != null)
-				installer.Arguments = args;
-
-			EditorUtility.SetDirty(installer);
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
-
+			var args = installer.Arguments;
 			var path = ExistPath(args.BuildEnviroment, args.BuildPlatform);
 			var buildPlayerOptions = new BuildPlayerOptions
 			{

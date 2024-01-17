@@ -784,7 +784,8 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Standalone: PROJECT_ENVIROMENT_QA
+    Android: PROJECT_ENVIROMENT_QA
+    Standalone: PROJECT_ENVIROMENT_DEVELOP
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}

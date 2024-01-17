@@ -13,18 +13,9 @@ namespace Anonymous.Jenkins
 		public const string profile = "Assets";
 
 		private static string path => Path.GetFullPath(Path.Combine(Application.dataPath, @".."));
-		private static Installer installer;
 
-		public static void Build(BatchArguments args)
+		public static void Build(Installer installer)
 		{
-			installer = Resources.Load("Jenkins/Installer") as Installer;
-			if (installer != null)
-				installer.Arguments = args;
-
-			EditorUtility.SetDirty(installer);
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
-
 			Bundle();
 		}
 
