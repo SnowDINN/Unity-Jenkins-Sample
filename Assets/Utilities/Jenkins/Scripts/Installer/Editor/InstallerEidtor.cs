@@ -104,6 +104,10 @@ namespace Anonymous.Jenkins
 				EditorGUILayout.PropertyField(serializedObject.FindProperty("Symbols"), true);
 				serializedObject.ApplyModifiedProperties();
 
+				EditorGUILayout.Space(5);
+				if (GUILayout.Button("Apply Symbols", GUILayout.Height(25)))
+					installer.SymbolBuildSettings(installer.DefineType);
+				
 				EditorGUILayout.EndVertical();
 			}
 		}
