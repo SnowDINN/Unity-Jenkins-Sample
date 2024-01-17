@@ -35,7 +35,6 @@ namespace Anonymous.Jenkins
 		{
 			installer = target as Installer;
 			serializedObject = new SerializedObject(installer);
-			;
 		}
 
 		[MenuItem("Utilities/On Select/Build Setting", false, 101)]
