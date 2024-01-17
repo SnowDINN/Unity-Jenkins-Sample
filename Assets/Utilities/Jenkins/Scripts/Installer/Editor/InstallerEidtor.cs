@@ -10,6 +10,9 @@ namespace Anonymous.Jenkins
 		private const float alignmentPosition = 12;
 		private const float alignmentWidth = 10;
 
+		private Installer installer;
+		private SerializedObject serializedObject;
+
 		private bool foldoutAndroid
 		{
 			get => Convert.ToBoolean(PlayerPrefs.GetInt("UNITY_EDITOR_FOLDOUT_ANDROID"));
@@ -28,13 +31,20 @@ namespace Anonymous.Jenkins
 			set => PlayerPrefs.SetInt("UNITY_EDITOR_FOLDOUT_SYMBOL", Convert.ToInt32(value));
 		}
 
-		private Installer installer;
-		private SerializedObject serializedObject;
-
 		private void OnEnable()
 		{
 			installer = target as Installer;
-			serializedObject = new SerializedObject(installer);;
+			serializedObject = new SerializedObject(installer);
+			;
+		}
+
+		[MenuItem("Utilities/On Select/Build Setting", false, 101)]
+		public static void OnSelectBuildSetting()
+		{
+			Selection.activeObject =
+				AssetDatabase.LoadMainAssetAtPath(
+					"Assets/Utilities/Jenkins/Scripts/Installer/Resources/Jenkins/Installer.asset");
+			EditorGUIUtility.PingObject(Selection.activeObject);
 		}
 
 		public override void OnInspectorGUI()
