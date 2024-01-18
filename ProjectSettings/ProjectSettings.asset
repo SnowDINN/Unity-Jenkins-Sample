@@ -785,7 +785,7 @@ PlayerSettings:
   webGLPowerPreference: 2
   scriptingDefineSymbols:
     Android: PROJECT_ENVIROMENT_QA
-    Standalone: PROJECT_ENVIROMENT_DEVELOP
+    Standalone: PROJECT_ENVIROMENT_QA
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}

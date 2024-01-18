@@ -1,0 +1,14 @@
+// Use Jenkins Pipeline Script
+
+import hudson.model.ParametersDefinitionProperty
+
+def job = Jenkins.instance.getItem("${PROJECT_JOB_NAME}")
+def params = job.getAction(ParametersDefinitionProperty)
+
+def version = params.getParameterDefinitions().find { param -> param.getName() == "BUILD_APP_VERSION" }    
+version.setDefaultValue("${BUILD_APP_VERSION}")
+
+def code = params.getParameterDefinitions().find { param -> param.getName() == "BUILD_VERSION_CODE" }    
+code.setDefaultValue("${BUILD_VERSION_CODE}")
+
+job.save()
