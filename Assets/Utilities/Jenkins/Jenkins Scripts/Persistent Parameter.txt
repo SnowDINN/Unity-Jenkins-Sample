@@ -8,7 +8,9 @@ def params = job.getAction(ParametersDefinitionProperty)
 def version = params.getParameterDefinitions().find { param -> param.getName() == "BUILD_APP_VERSION" }    
 version.setDefaultValue("${BUILD_APP_VERSION}")
 
+int index = ("${BUILD_VERSION_CODE}" as Integer) + 1
+
 def code = params.getParameterDefinitions().find { param -> param.getName() == "BUILD_VERSION_CODE" }    
-code.setDefaultValue("${BUILD_VERSION_CODE}")
+code.setDefaultValue("${index}")
 
 job.save()
