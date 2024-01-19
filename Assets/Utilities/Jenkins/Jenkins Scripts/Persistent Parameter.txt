@@ -5,12 +5,23 @@ import hudson.model.ParametersDefinitionProperty
 def job = Jenkins.instance.getItem("${PROJECT_JOB_NAME}")
 def params = job.getAction(ParametersDefinitionProperty)
 
-def version = params.getParameterDefinitions().find { param -> param.getName() == "BUILD_APP_VERSION" }    
-version.setDefaultValue("${BUILD_APP_VERSION}")
+if ("${PARAMETER_TYPE}".contains("VERSION"))
+{
+    def version = params.getParameterDefinitions().find { param -> param.getName() == "BUILD_APP_VERSION" }    
+    version.setDefaultValue("${BUILD_APP_VERSION}")
+}
 
-int index = ("${BUILD_VERSION_CODE}" as Integer) + 1
+if ("${PARAMETER_TYPE}".contains("VERSION-CODE"))
+{
+    int index = ("${BUILD_VERSION_CODE}" as Integer) + 1
 
-def code = params.getParameterDefinitions().find { param -> param.getName() == "BUILD_VERSION_CODE" }    
-code.setDefaultValue("${index}")
+    def code = params.getParameterDefinitions().find { param -> param.getName() == "BUILD_VERSION_CODE" }    
+    code.setDefaultValue("${index}")   
+}
+
+if ("${PARAMETER_TYPE}".contains("PUBLISH"))
+{
+    job.renameTo("Anichat_Published ${PUBLISH_STORE} - ${BUILD_APP_VERSION} (${BUILD_VERSION_CODE})")
+}
 
 job.save()
