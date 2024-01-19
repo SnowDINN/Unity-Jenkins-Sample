@@ -1,4 +1,6 @@
 // Use Jenkins Pipeline Script
+// ex) PARAMETER_TYPE = VERSION
+// ex) PROJECT_JOB_NAME = ${JOB_NAME}
 
 import hudson.model.ParametersDefinitionProperty
 
@@ -21,7 +23,7 @@ if ("${PARAMETER_TYPE}".contains("VERSION-CODE"))
 
 if ("${PARAMETER_TYPE}".contains("PUBLISH"))
 {
-    job.renameTo("Anichat_Published ${PUBLISH_STORE} - ${BUILD_APP_VERSION} (${BUILD_VERSION_CODE})")
+    job.renameTo("AniChat_Published ${PUBLISH_STORE} - ${BUILD_APP_VERSION} (${BUILD_VERSION_CODE})")
 }
 
 job.save()
