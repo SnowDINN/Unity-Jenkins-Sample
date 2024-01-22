@@ -4,7 +4,7 @@
 
 import hudson.model.ParametersDefinitionProperty
 
-def job = Jenkins.instance.getItem("${PROJECT_JOB_NAME}")
+def job = Jenkins.instance.getItemByFullName("${PROJECT_JOB_NAME}")
 def params = job.getAction(ParametersDefinitionProperty)
 
 if ("${PARAMETER_TYPE}".contains("VERSION"))
@@ -23,7 +23,7 @@ if ("${PARAMETER_TYPE}".contains("VERSION-CODE"))
 
 if ("${PARAMETER_TYPE}".contains("PUBLISH"))
 {
-    job.renameTo("AniChat_Published ${PUBLISH_STORE} - ${BUILD_APP_VERSION} (${BUILD_VERSION_CODE})")
+    job.renameTo("AniChat_Published ${BUILD_PLATFORM} - ${BUILD_APP_VERSION} (${BUILD_VERSION_CODE})")
 }
 
 job.save()
