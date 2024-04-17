@@ -5,11 +5,8 @@ using UnityEngine;
 namespace Anonymous.Jenkins
 {
 	[CustomEditor(typeof(Installer))]
-	public class InstallerEidtor : Editor
+	public class InstallerEditor : Editor
 	{
-		private const float alignmentPosition = 12;
-		private const float alignmentWidth = 10;
-
 		private Installer installer;
 		private SerializedObject serializedObject;
 
@@ -49,7 +46,7 @@ namespace Anonymous.Jenkins
 		public override void OnInspectorGUI()
 		{
 			EditorGUILayout.BeginHorizontal();
-			AddTitle("Jenkins Installer", 30);
+			EditorHeader.Title("Jenkins Installer", 30);
 			if (GUILayout.Button("SAVE", GUILayout.Width(50), GUILayout.Height(40)))
 			{
 				EditorUtility.SetDirty(installer);
@@ -58,10 +55,12 @@ namespace Anonymous.Jenkins
 			}
 
 			EditorGUILayout.EndHorizontal();
-			AddLine(2);
+			EditorGUILayout.Space();
+			EditorHeader.Line(2);
 
-			EditorGUILayout.Space(10);
-			AddTitle("Build Settings", 20);
+			EditorGUILayout.Space();
+			
+			EditorHeader.Title("Build Settings", 20);
 
 			installer.DefineType =
 				(EnviromentType)EditorGUILayout.EnumPopup("Define Symbol", installer.DefineType);
@@ -70,7 +69,7 @@ namespace Anonymous.Jenkins
 			installer.Arguments.BuildNumber =
 				EditorGUILayout.IntField("Number", installer.Arguments.BuildNumber);
 
-			EditorGUILayout.Space(20);
+			EditorGUILayout.Space();
 			foldoutAndroid = CategoryHeader.ShowHeader("Android Settings", foldoutAndroid);
 			if (foldoutAndroid)
 			{
@@ -81,14 +80,14 @@ namespace Anonymous.Jenkins
 			{
 				EditorGUILayout.BeginVertical(GUI.skin.GetStyle("GroupBox"));
 
-				AddTitle("Build property settings", 15);
+				EditorHeader.Title("Build property settings", 15);
 				installer.useSwiftLibraries =
 					(ActivateType)EditorGUILayout.EnumPopup("Use SwiftLibraries", installer.useSwiftLibraries);
 				installer.useBitCode = (ActivateType)EditorGUILayout.EnumPopup("Use BitCode", installer.useBitCode);
 
-				EditorGUILayout.Space(10);
+				EditorGUILayout.Space();
 
-				AddTitle("Capability settings", 15);
+				EditorHeader.Title("Capability settings", 15);
 				installer.useCapabilities =
 					(iOSCapability)EditorGUILayout.EnumFlagsField("Use Capabilities", installer.useCapabilities);
 
@@ -100,41 +99,16 @@ namespace Anonymous.Jenkins
 			{
 				EditorGUILayout.BeginVertical(GUI.skin.GetStyle("GroupBox"));
 
-				AddTitle("Symbol property settings", 15);
+				EditorHeader.Title("Symbol property settings", 15);
 				EditorGUILayout.PropertyField(serializedObject.FindProperty("Symbols"), true);
 				serializedObject.ApplyModifiedProperties();
 
-				EditorGUILayout.Space(5);
+				EditorGUILayout.Space();
 				if (GUILayout.Button("Apply Symbols", GUILayout.Height(25)))
 					installer.SymbolBuildSettings(installer.DefineType);
 				
 				EditorGUILayout.EndVertical();
 			}
-		}
-
-		private void AddTitle(string message, int fontSize)
-		{
-			var originalFontSize = GUI.skin.label.fontSize;
-			var rect = EditorGUILayout.GetControlRect(false);
-			rect.height += fontSize;
-
-			GUI.skin.label.fontSize = fontSize;
-			GUI.skin.label.fontStyle = FontStyle.Bold;
-			GUI.Label(rect, message);
-			GUI.skin.label.fontStyle = FontStyle.Normal;
-			GUI.skin.label.fontSize = originalFontSize;
-
-			EditorGUILayout.Space(fontSize / 1.5f);
-		}
-
-		private void AddLine(int height)
-		{
-			var rect = EditorGUILayout.GetControlRect(false, height);
-			rect.x -= alignmentPosition;
-			rect.width += alignmentWidth;
-			rect.height = height;
-
-			EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 1));
 		}
 	}
 }
