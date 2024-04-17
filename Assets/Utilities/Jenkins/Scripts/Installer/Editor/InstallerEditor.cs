@@ -63,7 +63,7 @@ namespace Anonymous.Jenkins
 			EditorHeader.Title("Build Settings", 20);
 
 			installer.DefineType =
-				(EnviromentType)EditorGUILayout.EnumPopup("Define Symbol", installer.DefineType);
+				(EnvironmentType)EditorGUILayout.EnumPopup("Define Symbol", installer.DefineType);
 			installer.Arguments.BuildVersion =
 				EditorGUILayout.TextField("Version", installer.Arguments.BuildVersion);
 			installer.Arguments.BuildNumber =

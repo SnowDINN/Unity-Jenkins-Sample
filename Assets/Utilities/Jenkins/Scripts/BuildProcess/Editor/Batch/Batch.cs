@@ -10,7 +10,7 @@ public class Batch
 	{
 		var args = new BatchArguments
 		{
-			BuildEnviroment = Enum.Parse<EnviromentType>(GetArgument("")),
+			buildEnvironment = Enum.Parse<EnvironmentType>(GetArgument("")),
 			BuildPlatform = Enum.Parse<BuildTarget>(GetArgument("")),
 			BuildVersion = GetArgument(""),
 			BuildVersionCode = Convert.ToInt32(GetArgument("")),
@@ -34,7 +34,7 @@ public class Batch
 	{
 		var args = new BatchArguments
 		{
-			BuildEnviroment = Enum.Parse<EnviromentType>(GetArgument("")),
+			buildEnvironment = Enum.Parse<EnvironmentType>(GetArgument("")),
 			BuildPlatform = Enum.Parse<BuildTarget>(GetArgument("")),
 			BuildVersion = GetArgument("")
 		};

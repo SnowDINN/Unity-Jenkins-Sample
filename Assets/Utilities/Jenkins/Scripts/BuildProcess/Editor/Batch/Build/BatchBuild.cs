@@ -10,7 +10,7 @@ namespace Anonymous.Jenkins
 		public static void Build(Installer installer)
 		{
 			var args = installer.Arguments;
-			var path = ExistPath(args.BuildEnviroment, args.BuildPlatform);
+			var path = ExistPath(args.buildEnvironment, args.BuildPlatform);
 			var buildPlayerOptions = new BuildPlayerOptions
 			{
 				scenes = FindEnabledEditorScenes(),
@@ -23,16 +23,16 @@ namespace Anonymous.Jenkins
 					: $"{path}";
 
 			if (installer != null)
-				installer.SymbolBuildSettings(args.BuildEnviroment);
+				installer.SymbolBuildSettings(args.buildEnvironment);
 			ProjectBuildSettings(args);
 
 			BuildPipeline.BuildPlayer(buildPlayerOptions);
 		}
 
-		private static string ExistPath(EnviromentType enviroment, BuildTarget platform)
+		private static string ExistPath(EnvironmentType environment, BuildTarget platform)
 		{
 			var projectPath = Path.GetFullPath(Path.Combine(Application.dataPath, @".."));
-			var path = $"{projectPath}/bin/{enviroment}/{platform}";
+			var path = $"{projectPath}/bin/{environment}/{platform}";
 			var info = new DirectoryInfo(path);
 			if (!info.Exists)
 				info.Create();

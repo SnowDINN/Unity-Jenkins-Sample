@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Anonymous.Jenkins
 {
 	[Flags]
-	public enum EnviromentType
+	public enum EnvironmentType
 	{
 		QA = 1,
 		Develop = 2,
@@ -33,13 +33,13 @@ namespace Anonymous.Jenkins
 	public class Symbol
 	{
 		public string SymbolCode;
-		public EnviromentType Type;
+		public EnvironmentType Type;
 	}
 
 	[Serializable]
 	public class BatchArguments
 	{
-		public EnviromentType BuildEnviroment;
+		public EnvironmentType buildEnvironment;
 		public BuildTarget BuildPlatform;
 		public string BuildVersion;
 		public int BuildVersionCode;
@@ -56,7 +56,7 @@ namespace Anonymous.Jenkins
 	public class Installer : ScriptableObject
 	{
 		public static List<string> defines = new()
-			{ "PROJECT_ENVIROMENT_QA", "PROJECT_ENVIROMENT_DEVELOP", "PROJECT_ENVIROMENT_RELEASE" };
+			{ "PROJECT_ENVIRONMENT_QA", "PROJECT_ENVIRONMENT_DEVELOP", "PROJECT_ENVIRONMENT_RELEASE" };
 
 		public BatchArguments Arguments;
 
@@ -66,7 +66,7 @@ namespace Anonymous.Jenkins
 
 		public List<Symbol> Symbols;
 
-		public EnviromentType DefineType
+		public EnvironmentType DefineType
 		{
 			get
 			{
@@ -75,20 +75,20 @@ namespace Anonymous.Jenkins
 
 				for (var i = 0; i < defines.Count; i++)
 					if (fullSymbolString.Contains(defines[i]))
-						return i == 0 ? (EnviromentType)1 : (EnviromentType)(i * 2);
+						return i == 0 ? (EnvironmentType)1 : (EnvironmentType)(i * 2);
 
-				return EnviromentType.Develop;
+				return EnvironmentType.Develop;
 			}
 			set => SymbolBuildSettings(value);
 		}
 
-		public void SymbolBuildSettings(EnviromentType type)
+		public void SymbolBuildSettings(EnvironmentType type)
 		{
 			var buildSymbol = type switch
 			{
-				EnviromentType.QA => defines[0],
-				EnviromentType.Develop => defines[1],
-				EnviromentType.Release => defines[2],
+				EnvironmentType.QA => defines[0],
+				EnvironmentType.Develop => defines[1],
+				EnvironmentType.Release => defines[2],
 				_ => defines[0]
 			};
 
