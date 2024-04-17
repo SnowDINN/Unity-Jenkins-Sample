@@ -12,6 +12,7 @@ namespace Anonymous.Jenkins
 		{
 			var originalFontSize = GUI.skin.label.fontSize;
 			var rect = EditorGUILayout.GetControlRect(false);
+			rect.x -= 2.5f;
 			rect.height += fontSize;
 
 			GUI.skin.label.fontSize = fontSize;

@@ -18,8 +18,6 @@ public static class CategoryHeader
 		rect.width -= 2;
 		var result = EditorGUI.Toggle(rect, foldoutState, Styles.foldoutStyle);
 
-		EditorGUI.indentLevel = result ? 1 : 0;
-
 		if (preferenceName != null && result != foldoutState)
 			EditorPrefs.SetBool(preferenceName, result);
 

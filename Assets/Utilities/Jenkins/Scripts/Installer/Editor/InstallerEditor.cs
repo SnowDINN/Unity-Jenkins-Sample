@@ -100,7 +100,9 @@ namespace Anonymous.Jenkins
 				EditorGUILayout.BeginVertical(GUI.skin.GetStyle("GroupBox"));
 
 				EditorHeader.Title("Symbol property settings", 15);
+				EditorGUI.indentLevel = 1;
 				EditorGUILayout.PropertyField(serializedObject.FindProperty("Symbols"), true);
+				EditorGUI.indentLevel = 0;
 				serializedObject.ApplyModifiedProperties();
 
 				EditorGUILayout.Space();
