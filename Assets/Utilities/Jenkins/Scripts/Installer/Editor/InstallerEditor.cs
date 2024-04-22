@@ -46,14 +46,15 @@ namespace Anonymous.Jenkins
 		public override void OnInspectorGUI()
 		{
 			EditorGUILayout.BeginHorizontal();
-			EditorHeader.Title("Jenkins Installer", 30);
-			if (GUILayout.Button("SAVE", GUILayout.Width(50), GUILayout.Height(40)))
 			{
-				EditorUtility.SetDirty(installer);
-				AssetDatabase.SaveAssets();
-				AssetDatabase.Refresh();
+				EditorHeader.Title("Jenkins Installer", 30);
+				if (GUILayout.Button("SAVE", GUILayout.Width(50), GUILayout.Height(40)))
+				{
+					EditorUtility.SetDirty(installer);
+					AssetDatabase.SaveAssets();
+					AssetDatabase.Refresh();
+				}
 			}
-
 			EditorGUILayout.EndHorizontal();
 			EditorGUILayout.Space();
 			EditorHeader.Line(2);
@@ -79,18 +80,19 @@ namespace Anonymous.Jenkins
 			if (foldoutIOS)
 			{
 				EditorGUILayout.BeginVertical(GUI.skin.GetStyle("GroupBox"));
+				{
+					EditorHeader.Title("Build property settings", 15);
+					installer.useSwiftLibraries =
+						(ActivateType)EditorGUILayout.EnumPopup("Use SwiftLibraries", installer.useSwiftLibraries);
+					installer.useBitCode = (ActivateType)EditorGUILayout.EnumPopup("Use BitCode", installer.useBitCode);
 
-				EditorHeader.Title("Build property settings", 15);
-				installer.useSwiftLibraries =
-					(ActivateType)EditorGUILayout.EnumPopup("Use SwiftLibraries", installer.useSwiftLibraries);
-				installer.useBitCode = (ActivateType)EditorGUILayout.EnumPopup("Use BitCode", installer.useBitCode);
+					EditorGUILayout.Space();
 
-				EditorGUILayout.Space();
+					EditorHeader.Title("Capability settings", 15);
+					installer.useCapabilities =
+						(iOSCapability)EditorGUILayout.EnumFlagsField("Use Capabilities", installer.useCapabilities);
 
-				EditorHeader.Title("Capability settings", 15);
-				installer.useCapabilities =
-					(iOSCapability)EditorGUILayout.EnumFlagsField("Use Capabilities", installer.useCapabilities);
-
+				}
 				EditorGUILayout.EndVertical();
 			}
 
@@ -98,17 +100,19 @@ namespace Anonymous.Jenkins
 			if (foldoutSymbols)
 			{
 				EditorGUILayout.BeginVertical(GUI.skin.GetStyle("GroupBox"));
+				{
+					EditorHeader.Title("Symbol property settings", 15);
+					EditorGUI.indentLevel = 1;
+					{
+						EditorGUILayout.PropertyField(serializedObject.FindProperty("Symbols"), true);
+					}
+					EditorGUI.indentLevel = 0;
+					serializedObject.ApplyModifiedProperties();
 
-				EditorHeader.Title("Symbol property settings", 15);
-				EditorGUI.indentLevel = 1;
-				EditorGUILayout.PropertyField(serializedObject.FindProperty("Symbols"), true);
-				EditorGUI.indentLevel = 0;
-				serializedObject.ApplyModifiedProperties();
-
-				EditorGUILayout.Space();
-				if (GUILayout.Button("Apply Symbols", GUILayout.Height(25)))
-					installer.SymbolBuildSettings(installer.DefineType);
-				
+					EditorGUILayout.Space();
+					if (GUILayout.Button("Apply Symbols", GUILayout.Height(25)))
+						installer.SymbolBuildSettings(installer.DefineType);
+				}
 				EditorGUILayout.EndVertical();
 			}
 		}
